@@ -40,6 +40,19 @@ class DetectionPipelineTests(unittest.TestCase):
 
         self.assertEqual(alerts, [])
 
+    def test_correlates_bruteforce_from_untrusted_ip(self) -> None:
+        logs = [
+            f"2026-04-27T11:00:0{i}Z API POST /login failed from 203.0.113.50 user=guest status=401"
+            for i in range(6)
+        ]
+
+        alerts = self._alerts_for(logs)
+        correlated = [alert for alert in alerts if alert["type"] == "Correlated Attack"]
+
+        self.assertEqual(len(correlated), 1)
+        self.assertEqual(correlated[0]["severity"], "CRITICAL")
+        self.assertEqual(correlated[0]["source"], "203.0.113.50")
+
 
 if __name__ == "__main__":
     unittest.main()
