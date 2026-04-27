@@ -1,4 +1,11 @@
-PRIVATE_PREFIXES = ("10.", "172.16.", "192.168.")
+from ipaddress import ip_address, ip_network
+
+
+PRIVATE_NETWORKS = (
+    ip_network("10.0.0.0/8"),
+    ip_network("172.16.0.0/12"),
+    ip_network("192.168.0.0/16"),
+)
 
 
 def _ip_reputation(source_ip: str, trusted_ips: set[str]) -> str:
@@ -6,8 +13,15 @@ def _ip_reputation(source_ip: str, trusted_ips: set[str]) -> str:
         return "trusted"
     if source_ip == "unknown":
         return "not_applicable"
-    if source_ip.startswith(PRIVATE_PREFIXES):
+
+    try:
+        parsed_ip = ip_address(source_ip)
+    except ValueError:
+        return "not_applicable"
+
+    if any(parsed_ip in network for network in PRIVATE_NETWORKS):
         return "internal_untrusted"
+
     return "external_untrusted"
 
 
