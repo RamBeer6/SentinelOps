@@ -1,0 +1,7 @@
+2026-04-27T13:30:01Z API POST /login failed from 172.16.9.44 user=guest status=401
+2026-04-27T13:30:03Z API POST /login failed from 172.16.9.44 user=guest status=401
+2026-04-27T13:30:05Z API POST /login failed from 172.16.9.44 user=guest status=401
+2026-04-27T13:30:07Z API POST /login failed from 172.16.9.44 user=guest status=401
+2026-04-27T13:30:09Z API POST /login failed from 172.16.9.44 user=guest status=401
+2026-04-27T13:30:11Z API POST /login failed from 172.16.9.44 user=guest status=401
+2026-04-27T13:31:00Z API GET /admin from 203.0.113.88 user=anonymous status=403

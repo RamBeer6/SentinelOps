@@ -1,0 +1,4 @@
+2026-04-27T12:15:00Z SYSTEM Process: bash started high CPU usage host=web-01 cpu=93
+2026-04-27T12:15:08Z SYSTEM File accessed: /etc/passwd user=www-data host=web-01
+2026-04-27T12:15:14Z SYSTEM File accessed: /etc/shadow user=www-data host=web-01
+2026-04-27T12:17:00Z API GET /health from 10.0.0.8 status=200

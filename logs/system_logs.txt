@@ -1,0 +1,17 @@
+2026-04-27T09:00:01Z SSH Failed password for root from 192.168.1.10 port 54421
+2026-04-27T09:00:05Z SSH Failed password for root from 192.168.1.10 port 54422
+2026-04-27T09:00:09Z SSH Failed password for admin from 192.168.1.10 port 54423
+2026-04-27T09:00:13Z SSH Failed password for admin from 192.168.1.10 port 54424
+2026-04-27T09:00:17Z SSH Failed password for root from 192.168.1.10 port 54425
+2026-04-27T09:00:21Z SSH Failed password for user from 192.168.1.10 port 54426
+2026-04-27T09:01:02Z SSH Accepted password for analyst from 10.0.0.5 port 49812
+2026-04-27T09:03:31Z API POST /login failed from 172.16.4.20 user=guest status=401
+2026-04-27T09:03:36Z API POST /login failed from 172.16.4.20 user=guest status=401
+2026-04-27T09:03:41Z API POST /login failed from 172.16.4.20 user=guest status=401
+2026-04-27T09:03:46Z API POST /login failed from 172.16.4.20 user=guest status=401
+2026-04-27T09:03:51Z API POST /login failed from 172.16.4.20 user=guest status=401
+2026-04-27T09:03:56Z API POST /login failed from 172.16.4.20 user=guest status=401
+2026-04-27T09:04:22Z API GET /admin from 203.0.113.77 user=anonymous status=403
+2026-04-27T09:05:10Z SYSTEM Process: python started high CPU usage host=web-01 cpu=96
+2026-04-27T09:07:44Z SYSTEM File accessed: /etc/passwd user=www-data host=web-01
+2026-04-27T09:09:00Z API GET /health from 10.0.0.8 status=200

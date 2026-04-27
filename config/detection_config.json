@@ -1,0 +1,34 @@
+{
+  "trusted_ips": ["10.0.0.5", "10.0.0.8", "192.168.1.20"],
+  "bruteforce_threshold": 5,
+  "cpu_threshold": 90,
+  "sensitive_files": ["/etc/passwd", "/etc/shadow", "/etc/sudoers"],
+  "untrusted_admin_endpoints": ["/admin", "/api/admin"],
+  "asset_criticality": {
+    "web-01": "HIGH",
+    "auth-01": "CRITICAL",
+    "unknown": "LOW"
+  },
+  "mitre_mapping": {
+    "Brute Force": {
+      "tactic": "Credential Access",
+      "technique": "T1110 - Brute Force"
+    },
+    "Suspicious IP": {
+      "tactic": "Initial Access",
+      "technique": "T1190 - Exploit Public-Facing Application"
+    },
+    "Privilege Access": {
+      "tactic": "Discovery",
+      "technique": "T1087 - Account Discovery"
+    },
+    "Abnormal Behavior": {
+      "tactic": "Execution",
+      "technique": "T1059 - Command and Scripting Interpreter"
+    },
+    "Correlated Attack": {
+      "tactic": "Multiple",
+      "technique": "Correlated activity across detection rules"
+    }
+  }
+}
