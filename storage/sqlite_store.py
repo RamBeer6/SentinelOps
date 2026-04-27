@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS runs (
 );
 
 CREATE TABLE IF NOT EXISTS alerts (
-    id TEXT PRIMARY KEY,
+    id TEXT NOT NULL,
     run_id INTEGER NOT NULL,
     type TEXT NOT NULL,
     severity TEXT NOT NULL,
@@ -22,18 +22,72 @@ CREATE TABLE IF NOT EXISTS alerts (
     source_ip TEXT NOT NULL,
     description TEXT NOT NULL,
     payload TEXT NOT NULL,
+    PRIMARY KEY (run_id, id),
     FOREIGN KEY (run_id) REFERENCES runs(id)
 );
 
 CREATE TABLE IF NOT EXISTS investigations (
-    alert_id TEXT PRIMARY KEY,
+    alert_id TEXT NOT NULL,
+    run_id INTEGER NOT NULL,
     finding TEXT NOT NULL,
     impact TEXT NOT NULL,
     risk TEXT NOT NULL,
     payload TEXT NOT NULL,
-    FOREIGN KEY (alert_id) REFERENCES alerts(id)
+    PRIMARY KEY (run_id, alert_id),
+    FOREIGN KEY (run_id, alert_id) REFERENCES alerts(run_id, id)
 );
 """
+
+
+def _table_columns(connection: sqlite3.Connection, table_name: str) -> set[str]:
+    return {row[1] for row in connection.execute(f"PRAGMA table_info({table_name})").fetchall()}
+
+
+def _migrate_legacy_schema(connection: sqlite3.Connection) -> None:
+    tables = {
+        row[0]
+        for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
+    }
+    if not {"alerts", "investigations"}.issubset(tables):
+        return
+    if "run_id" in _table_columns(connection, "investigations"):
+        return
+
+    connection.executescript(
+        """
+        ALTER TABLE alerts RENAME TO alerts_legacy;
+        ALTER TABLE investigations RENAME TO investigations_legacy;
+        """
+    )
+    connection.executescript(SCHEMA)
+    connection.executescript(
+        """
+        INSERT INTO alerts (
+            id, run_id, type, severity, risk_score, timestamp, source,
+            source_ip, description, payload
+        )
+        SELECT
+            id, run_id, type, severity, risk_score, timestamp, source,
+            source_ip, description, payload
+        FROM alerts_legacy;
+
+        INSERT INTO investigations (
+            alert_id, run_id, finding, impact, risk, payload
+        )
+        SELECT
+            investigations_legacy.alert_id,
+            alerts.run_id,
+            investigations_legacy.finding,
+            investigations_legacy.impact,
+            investigations_legacy.risk,
+            investigations_legacy.payload
+        FROM investigations_legacy
+        JOIN alerts ON alerts.id = investigations_legacy.alert_id;
+
+        DROP TABLE alerts_legacy;
+        DROP TABLE investigations_legacy;
+        """
+    )
 
 
 def initialize_database(db_path: str = "data/sentinelops.db") -> Path:
@@ -43,6 +97,8 @@ def initialize_database(db_path: str = "data/sentinelops.db") -> Path:
     connection = sqlite3.connect(path)
     try:
         connection.executescript(SCHEMA)
+        _migrate_legacy_schema(connection)
+        connection.commit()
     finally:
         connection.close()
 
@@ -93,12 +149,13 @@ def save_run(
             cursor.execute(
                 """
                 INSERT OR REPLACE INTO investigations (
-                    alert_id, finding, impact, risk, payload
+                    alert_id, run_id, finding, impact, risk, payload
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     alert["id"],
+                    run_id,
                     investigation["finding"],
                     investigation["impact"],
                     investigation["risk"],

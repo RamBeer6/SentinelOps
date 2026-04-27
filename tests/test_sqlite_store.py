@@ -33,18 +33,36 @@ class SQLiteStoreTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "sentinelops.db"
             run_id = save_run([alert], {alert["id"]: investigation}, "logs/system_logs.txt", str(db_path))
+            second_run_id = save_run(
+                [alert],
+                {alert["id"]: investigation},
+                "logs/scenario_bruteforce.log",
+                str(db_path),
+            )
 
             connection = sqlite3.connect(db_path)
             try:
-                run = connection.execute("SELECT id, log_path, alert_count FROM runs").fetchone()
-                stored_alert = connection.execute("SELECT run_id, payload FROM alerts").fetchone()
-                stored_investigation = connection.execute(
-                    "SELECT alert_id, payload FROM investigations"
+                run = connection.execute(
+                    "SELECT id, log_path, alert_count FROM runs WHERE id = ?",
+                    (run_id,),
                 ).fetchone()
+                stored_alert = connection.execute(
+                    "SELECT run_id, payload FROM alerts WHERE run_id = ?",
+                    (run_id,),
+                ).fetchone()
+                stored_investigation = connection.execute(
+                    "SELECT alert_id, payload FROM investigations WHERE run_id = ?",
+                    (run_id,),
+                ).fetchone()
+                alert_count = connection.execute("SELECT COUNT(*) FROM alerts").fetchone()[0]
+                investigation_count = connection.execute("SELECT COUNT(*) FROM investigations").fetchone()[0]
             finally:
                 connection.close()
 
         self.assertEqual(run, (run_id, "logs/system_logs.txt", 1))
+        self.assertNotEqual(run_id, second_run_id)
+        self.assertEqual(alert_count, 2)
+        self.assertEqual(investigation_count, 2)
         self.assertEqual(stored_alert[0], run_id)
         self.assertEqual(json.loads(stored_alert[1])["id"], "ALERT-0001")
         self.assertEqual(stored_investigation[0], "ALERT-0001")
