@@ -40,8 +40,11 @@ def initialize_database(db_path: str = "data/sentinelops.db") -> Path:
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    with sqlite3.connect(path) as connection:
+    connection = sqlite3.connect(path)
+    try:
         connection.executescript(SCHEMA)
+    finally:
+        connection.close()
 
     return path
 
@@ -54,7 +57,8 @@ def save_run(
 ) -> int:
     path = initialize_database(db_path)
 
-    with sqlite3.connect(path) as connection:
+    connection = sqlite3.connect(path)
+    try:
         cursor = connection.cursor()
         cursor.execute(
             "INSERT INTO runs (created_at, log_path, alert_count) VALUES (datetime('now'), ?, ?)",
@@ -101,5 +105,9 @@ def save_run(
                     json.dumps(investigation, indent=2),
                 ),
             )
+
+        connection.commit()
+    finally:
+        connection.close()
 
     return run_id
