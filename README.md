@@ -1,38 +1,42 @@
-# SentinelOps - SOC Detection & Investigation System
+# SentinelOps
 
-SentinelOps is a Python-based SOC simulation that models a real analyst workflow:
+SentinelOps is a lightweight SOC detection and investigation pipeline written in Python. It ingests raw security logs, normalizes them into structured events, applies detection rules, generates enriched alerts, stores findings in SQLite, and produces investigation reports.
+
+The project is intended for learning, experimentation, and demonstrating how detection engineering workflows can be modeled with simple, inspectable code.
+
+## Pipeline
 
 ```text
-Raw Logs -> Parsed Events -> Detections -> Alerts -> Investigations -> Reports -> SQLite History
+Raw Logs -> Parsed Events -> Detection Rules -> Alerts -> Investigation -> Reports -> SQLite
 ```
 
-The project is designed as a portfolio-grade security engineering project. It shows log parsing, detection logic, alert enrichment, incident investigation, reporting, and persistence.
+## Features
 
-## What It Does
-
-- Ingests raw SSH, API, and system logs
-- Normalizes log lines into structured security events
-- Runs configurable detection rules
-- Generates enriched JSON alerts
-- Maps detections to MITRE ATT&CK context
-- Correlates related alerts into escalated incidents
-- Produces analyst-style incident reports
-- Produces an executive summary
-- Produces a static HTML SOC dashboard
-- Stores alerts and investigations in SQLite
-- Includes repeatable scenarios and unit tests
+- Raw log ingestion from text files
+- Structured event parsing for SSH, API, and system activity
+- Configurable detection thresholds and trusted IP ranges
+- Rule-based detections for authentication attacks, suspicious IP activity, sensitive file access, and abnormal process behavior
+- Alert enrichment with IP reputation, asset criticality, and MITRE ATT&CK context
+- Correlation logic for escalating related detections
+- JSON alert output
+- Text incident reports
+- Executive summary generation
+- Static HTML dashboard
+- SQLite storage for alert and investigation history
+- Sample attack scenarios
+- Unit tests for detection behavior
 
 ## Detection Rules
 
-| Rule | Logic | Severity |
+| Rule | Description | Severity |
 | --- | --- | --- |
-| Brute Force | More than 5 failed login attempts from one IP | HIGH |
-| Suspicious IP | Auth or admin activity from an untrusted IP | MEDIUM |
-| Privilege Access | Access to sensitive files such as `/etc/passwd` or `/etc/shadow` | HIGH |
-| Abnormal Behavior | Process CPU usage above configured threshold | MEDIUM |
-| Correlated Attack | Brute force combined with suspicious IP activity | CRITICAL |
+| Brute Force | Detects more than the configured number of failed login attempts from one IP address | HIGH |
+| Suspicious IP | Detects authentication or admin activity from an untrusted IP address | MEDIUM |
+| Privilege Access | Detects access to configured sensitive files such as `/etc/passwd` or `/etc/shadow` | HIGH |
+| Abnormal Behavior | Detects process activity above the configured CPU threshold | MEDIUM |
+| Correlated Attack | Escalates cases where brute-force activity and suspicious IP activity are linked | CRITICAL |
 
-Detection settings live in:
+Detection settings are defined in:
 
 ```text
 config/detection_config.json
@@ -42,37 +46,70 @@ config/detection_config.json
 
 ```text
 SentinelOps/
-  alerts/              JSON alert generation
-  config/              Detection thresholds, trusted IPs, MITRE mapping
-  detector/            Detection and correlation engine
-  enrichment/          IP reputation, asset criticality, MITRE enrichment
-  investigation/       Alert investigation logic
-  logs/                Sample logs and attack scenarios
-  parser/              Raw log to normalized event parser
-  reports/             Text reports, executive summary, HTML dashboard
+  alerts/              Alert creation and JSON export
+  config/              Detection settings and MITRE mappings
+  detector/            Detection and correlation rules
+  enrichment/          Alert enrichment logic
+  investigation/       Investigation summaries and recommendations
+  logs/                Sample logs and scenarios
+  parser/              Raw log normalization
+  reports/             Report and dashboard generation
   storage/             SQLite persistence
   tests/               Unit tests
   loader.py            Log file loader
-  main.py              CLI runner
+  main.py              Command-line runner
 ```
 
-## Run The Full Pipeline
+## Requirements
+
+- Python 3.10 or newer
+- No external Python packages are required
+
+## Quick Start
+
+Run the default pipeline:
 
 ```powershell
 python main.py --clean
 ```
 
-Generated outputs:
+This reads:
 
-- `alerts/alerts.json`
-- `reports/alert-*.txt`
-- `reports/executive_summary.md`
-- `reports/dashboard.html`
-- `data/sentinelops.db`
+```text
+logs/system_logs.txt
+```
 
-## Run Specific Scenarios
+And generates:
 
-Brute force:
+```text
+alerts/alerts.json
+reports/alert-*.txt
+reports/executive_summary.md
+reports/dashboard.html
+data/sentinelops.db
+```
+
+## CLI Usage
+
+```powershell
+python main.py --help
+```
+
+Common options:
+
+```powershell
+python main.py --log-file logs/system_logs.txt
+python main.py --config config/detection_config.json
+python main.py --reports-dir reports
+python main.py --alerts-file alerts/alerts.json
+python main.py --db data/sentinelops.db
+python main.py --no-db
+python main.py --clean
+```
+
+## Sample Scenarios
+
+Brute-force authentication attempt:
 
 ```powershell
 python main.py --clean --log-file logs/scenario_bruteforce.log
@@ -90,12 +127,6 @@ API abuse:
 python main.py --clean --log-file logs/scenario_api_abuse.log
 ```
 
-## Run Tests
-
-```powershell
-python -m unittest
-```
-
 ## Example Alert
 
 ```json
@@ -104,33 +135,44 @@ python -m unittest
   "type": "Correlated Attack",
   "severity": "CRITICAL",
   "risk_score": 10,
+  "description": "Brute-force activity from an untrusted IP requires escalation",
   "source": "172.16.4.20",
+  "source_ip": "172.16.4.20",
   "enrichment": {
     "ip_reputation": "internal_untrusted",
+    "asset_criticality": "LOW",
     "mitre_tactic": "Multiple",
     "mitre_technique": "Correlated activity across detection rules"
   }
 }
 ```
 
-## Interview Talking Points
+## Reports
 
-- I built a full detection pipeline, not just isolated scripts.
-- I normalized raw logs into structured events before applying detection rules.
-- I separated configuration from code so thresholds and trusted IPs can be tuned.
-- I added enrichment fields such as IP reputation, asset criticality, and MITRE mapping.
-- I correlated multiple detections into a higher-severity incident.
-- I persisted alerts and investigations into SQLite for historical review.
-- I generated both analyst reports and an executive summary/dashboard.
-- I added unit tests to validate detection behavior.
+SentinelOps produces several report formats:
 
-## Resume Description
+- Per-alert incident reports in `reports/alert-*.txt`
+- Executive summary in `reports/executive_summary.md`
+- Static dashboard in `reports/dashboard.html`
+
+The generated dashboard can be opened directly in a browser.
+
+## Running Tests
+
+```powershell
+python -m unittest
+```
+
+## Data Storage
+
+When SQLite persistence is enabled, SentinelOps writes run history, alerts, and investigations to:
 
 ```text
-SOC Detection & Investigation System
-* Built a Python SOC pipeline to parse logs, detect anomalies, and generate enriched security alerts
-* Implemented configurable detection rules for brute force, suspicious IP activity, privilege access, and abnormal host behavior
-* Added alert correlation, risk scoring, MITRE ATT&CK mapping, and SQLite persistence
-* Automated incident investigation reports, executive summaries, and a static SOC dashboard
-* Created repeatable attack scenarios and unit tests for detection validation
+data/sentinelops.db
 ```
+
+Use `--no-db` to run the pipeline without writing to SQLite.
+
+## Notes
+
+SentinelOps uses sample logs and deterministic detection rules. It is not a replacement for production SIEM, EDR, or SOAR tooling, but it provides a compact reference implementation of a detection and investigation workflow.
