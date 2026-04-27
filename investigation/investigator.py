@@ -43,10 +43,11 @@ def investigate_suspicious_ip(alert: dict) -> dict:
 
 def investigate_privilege_access(alert: dict) -> dict:
     context = _common_context(alert)
+    asset = alert.get("metadata", {}).get("asset", "a sensitive file")
 
     return {
         **context,
-        "finding": "Sensitive file access to /etc/passwd was observed",
+        "finding": f"Sensitive file access to {asset} was observed",
         "impact": "Possible credential discovery or privilege escalation preparation",
         "risk": "Attacker may be collecting local account information",
         "recommendations": [
