@@ -26,6 +26,10 @@ Raw Logs -> Parsed Events -> Detection Rules -> Alerts -> Investigation -> Repor
 - Sample attack scenarios
 - Unit tests for detection behavior
 
+## Dashboard Preview
+
+![Dashboard Preview](docs/screenshots/dashboard-preview.png)
+
 ## Detection Rules
 
 | Rule | Description | Severity |
@@ -59,6 +63,13 @@ SentinelOps/
   loader.py            Log file loader
   main.py              Command-line runner
 ```
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Detection Rules](docs/detection_rules.md)
+- [Investigation Playbook](docs/investigation_playbook.md)
+- [Sample Incident Report](docs/sample_incident_report.md)
 
 ## Requirements
 
